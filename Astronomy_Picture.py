@@ -71,7 +71,6 @@ soup = BeautifulSoup(response.text, 'html.parser')
 
 title = soup.findAll('b')[0].text
 image_links = get_image()
-print(image_links)
 
 image_explanation = get_explanation()
 print(image_explanation)
