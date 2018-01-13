@@ -5,21 +5,21 @@ import io
 from PIL import Image
 from bs4 import BeautifulSoup
 
-astro_date = ''
-astro_URL = 'https://apod.nasa.gov/apod/ap%%.html'
+astro_URL = 'https://apod.nasa.gov/apod/ap[%%].html'
 astro_image_URL = 'https://apod.nasa.gov/apod/'
 save_path = r"C:\Users\parth\Pictures\APOD"
 
 
 def get_date():
-    global astro_date
     try:
-        date = input('Enter Date for the Astronomy picture you want to see. [dd/mm/yy] \n').split('/')
+        date = input('Enter Date for the Astronomy picture you want to see. [dd/mm/yy] ("T" for today.) \n').split('/')
+        if date[0].lower() in ['', 't']:
+            date = datetime.datetime.now().strftime("%d-%m-%y").split('-')
         date = list(map(int, date))
         x = str(datetime.datetime(year=date[2], month=date[1], day=date[0])).split('-')
         y1 = [x[0][2:], x[1], x[2][:2]]
-        astro_date = ''.join(y1)
-        return datetime.datetime(date[2], date[1], date[0])
+        url_date = ''.join(y1)
+        return datetime.datetime(date[2], date[1], date[0]), url_date
 
     except ValueError or IndexError:
         print('Enter a valid date.')
@@ -58,11 +58,11 @@ def download_image():
     image_raw = requests.get(image_links['full-res'])
     image_bytes = io.BytesIO(image_raw.content)
     image = Image.open(image_bytes).convert("RGB")
-    image.save(save_path + '\\' + title.replace(':', '') + '.jpg', format=None)
+    image.save(save_path + '\\' + title.replace(':', '') + '.png', 'PNG')
 
 
-image_date = get_date()
-image_URL = astro_URL.replace('%%', astro_date)
+image_date, astro_date = get_date()
+image_URL = astro_URL.replace('[%%]', astro_date)
 response = requests.get(image_URL)
 if response.status_code != 200:
     print('The date entered is out of range. Please enter a date between January 1, 1995 and today.')
@@ -70,10 +70,10 @@ if response.status_code != 200:
 soup = BeautifulSoup(response.text, 'html.parser')
 
 title = soup.findAll('b')[0].text
-
 image_links = get_image()
-image_explanation = get_explanation()
+print(image_links)
 
+image_explanation = get_explanation()
 print(image_explanation)
 
 y = input("Do you want to see the picture?")
